@@ -1,0 +1,22 @@
+# Training scripts & data (not needed for inference)
+train.py
+training-data-lora-single.jsonl
+environment.yml
+requirements.txt
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# Dev / repo artefacts
+.git/
+.gitignore
+*.md
+
+# macOS
+.DS_Store

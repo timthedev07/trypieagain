@@ -1,0 +1,44 @@
+# ── For end-users ─────────────────────────────────────────────────────────────
+# Pull the pre-built image from DockerHub and run the evaluation.
+# No source code or build tools are required.
+#
+# Usage:
+#   docker compose -f docker-compose.run.yml run pie-model
+#   docker compose -f docker-compose.run.yml run pie-model --verbose --max-examples 10
+#
+# On first run the base model (~4 GB) is downloaded from HuggingFace into the
+# named volume `hf_cache` so subsequent runs skip the download.
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  pie-model:
+    image: timthedev07/trypieagain:latest
+    platform: linux/amd64
+
+    # ── GPU access ────────────────────────────────────────────────────────────
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+    # ── HuggingFace model cache (persisted across runs) ───────────────────────
+    volumes:
+      - hf_cache:/app/hf_cache
+
+    # ── Optional: HF token (needed only for gated models) ────────────────────
+    environment:
+      - HUGGING_FACE_HUB_TOKEN=${HUGGING_FACE_HUB_TOKEN:-}
+
+    command:
+      - python
+      - evaluate_offline.py
+      - --adapter
+      - /app/adapter
+      - --test-proofs
+      - /app/test-even-or-odd-holdout.jsonl
+
+volumes:
+  hf_cache:

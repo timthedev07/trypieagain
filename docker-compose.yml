@@ -1,0 +1,38 @@
+services:
+  pie-model:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      platforms:
+        - linux/amd64
+    image: timthedev07/trypieagain:latest
+
+    # ── GPU access ────────────────────────────────────────────────────────────
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+    # ── HuggingFace model cache (persisted across runs) ───────────────────────
+    volumes:
+      - hf_cache:/app/hf_cache
+
+    # ── Optional: pass a HF token for gated models ────────────────────────────
+    environment:
+      - HUGGING_FACE_HUB_TOKEN=${HUGGING_FACE_HUB_TOKEN:-}
+
+    # Default: run the full eval. Override on the CLI, e.g.:
+    #   docker compose run pie-model --verbose --max-examples 5
+    command:
+      - python
+      - evaluate_offline.py
+      - --adapter
+      - /app/adapter
+      - --test-proofs
+      - /app/test-even-or-odd-holdout.jsonl
+
+volumes:
+  hf_cache:
